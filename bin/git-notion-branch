@@ -1,0 +1,89 @@
+#!/usr/bin/env ruby
+# encoding: UTF-8
+#
+# git-notion-branch
+#
+#   Suggest a branch name from the given Notion link ID
+#
+#   Assumes the branches are named as:
+#   <link-id>-<branch-title>
+#
+require 'rubygems'
+require 'optparse'
+require 'readline'
+require 'term/ansicolor'
+require 'git-whistles/app'
+require 'git-whistles/notion'
+
+class App < Git::Whistles::App
+
+  def initialize
+    super
+
+    @client = Git::Whistles::Notion.new.get_client rescue die('Aborting.')
+  end
+
+  def main(args)
+    super
+    parse_args!(args)
+
+    if args.count < 1
+      show_and_exit usage
+    end
+
+    page_id = args[0]
+
+    # get Notion page info
+    page = @client.page(page_id)
+
+    branch_name_suggested = "#{page[:title].downcase}/#{page[:id]}"
+    branch_name_suggested.gsub!(/[^\w\d\/]/, '-').gsub!(/-+/, '-')
+
+    puts 'The suggested branch name is: ' << Term::ANSIColor.yellow(branch_name_suggested)
+    puts '    Press ENTER if you agree'
+    puts ' or Write any other name and press ENTER'
+    puts ' or Press CTRL-D to cancel'
+
+    branch_name = Readline.readline '  > ', false
+
+    if branch_name.nil?
+      log.warn "\nCancelled by user"
+      exit 2
+    end
+
+    branch_name = branch_name.empty? ? branch_name_suggested : branch_name
+
+    # create branch
+    `cd #{ENV['PWD']} && git checkout -b #{branch_name}`
+
+    # TODO update some status in the Notion page
+
+    puts Term::ANSIColor.green('Created branch')
+  end
+
+  private
+
+  def usage
+    'Usage: git notion-branch PAGE_ID'
+  end
+
+  def show_and_exit(message)
+    puts message
+    exit 1
+  end
+
+  def option_parser
+    @option_parser ||= OptionParser.new do |op|
+      op.banner = usage
+
+      op.on_tail('-h', '--help', 'Show this message') do
+        show_and_exit op
+      end
+    end
+  end
+
+end
+
+############################################################################
+
+App.run!

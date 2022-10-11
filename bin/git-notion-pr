@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# encoding: UTF-8
+#
+# git-notion-pr --
+#
+#   Open a pull request for the current branch in your default browser
+#
+#   Assumes the branches are named
+#   <page-title>/<page-id>
+#
+require 'rubygems'
+require 'optparse'
+require 'cgi'
+require 'term/ansicolor'
+require 'git-whistles/app'
+require 'git-whistles/pull_request/notion'
+
+Git::Whistles::PullRequest::Notion.run!

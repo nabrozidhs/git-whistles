@@ -27,6 +27,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "term-ansicolor"
   gem.add_dependency "jira-ruby", "~> 1.0.0"
   gem.add_dependency "youtrack", "~> 0.0.11"
+  gem.add_dependency "faraday", "~> 2.6.0"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
